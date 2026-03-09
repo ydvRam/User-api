@@ -20,6 +20,22 @@ export class UserService {
     return this.userRepository.find();
   }
 
+  /** QueryBuilder: filtering by optional name & email */
+  findFiltered(filters: { name?: string; email?: string }): Promise<User[]> {
+    const qb = this.userRepository.createQueryBuilder('user');
+    if (filters.name) qb.andWhere('user.name ILIKE :name', { name: `%${filters.name}%` });
+    if (filters.email) qb.andWhere('user.email ILIKE :email', { email: `%${filters.email}%` });
+    return qb.getMany();
+  }
+
+  /** QueryBuilder: join User with Profile */
+  findWithProfile(): Promise<User[]> {
+    return this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .getMany();
+  }
+
   findOne(id: number) {
     return this.userRepository.findOne({
       where: { id: id },
